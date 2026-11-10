@@ -1,6 +1,6 @@
 {
   "name": "homebridge-ring-snapshot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Homebridge plugin that exposes Ring camera snapshots, motion and doorbell events using the Ring API.",
   "main": "index.js",
   "engines": {
@@ -9,6 +9,10 @@
   },
   "scripts": {
     "check": "node --check index.js && node --check src/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bmccruz/homebridge-ring-snapshot.git"
   },
   "keywords": [
     "homebridge-plugin",
@@ -32,5 +36,9 @@
     "config.schema.json",
     "README.md",
     "LICENSE"
-  ]
+  ],
+    "bugs": {
+    "url": "https://github.com/bmccruz/homebridge-ring-snapshot/issues"
+  },
+  "homepage": "https://github.com/bmccruz/homebridge-ring-snapshot#readme"
 }
