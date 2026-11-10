@@ -1,0 +1,92 @@
+{
+  "pluginAlias": "RingSnapshot",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "platform": {
+        "type": "string",
+        "default": "RingSnapshot",
+        "description": "Plugin platform name."
+      },
+      "name": {
+        "type": "string",
+        "default": "Ring Snapshot",
+        "description": "Platform display name."
+      },
+      "refreshToken": {
+        "type": "string",
+        "description": "Ring refresh token used to access the camera."
+      },
+      "cameraName": {
+        "type": "string",
+        "default": "Portão",
+        "description": "Name of the Ring camera to monitor."
+      },
+      "snapshotDirectory": {
+        "type": "string",
+        "default": "/var/lib/homebridge/ring-snapshots",
+        "description": "Directory used to save snapshots and latest.jpg."
+      },
+      "retentionDays": {
+        "type": "integer",
+        "default": 30,
+        "minimum": 1,
+        "description": "Days to retain saved snapshots before automatic cleanup."
+      },
+      "cooldownSeconds": {
+        "type": "integer",
+        "default": 60,
+        "minimum": 0,
+        "description": "Cooldown applied between repeated snapshots."
+      },
+      "motionResetSeconds": {
+        "type": "integer",
+        "default": 10,
+        "minimum": 1,
+        "description": "Motion reset time used for temporary motion events."
+      },
+      "snapshotRetries": {
+        "type": "integer",
+        "default": 3,
+        "minimum": 0,
+        "description": "Number of retries when the Ring snapshot request fails temporarily."
+      },
+      "snapshotRetryDelayMs": {
+        "type": "integer",
+        "default": 2000,
+        "minimum": 0,
+        "description": "Delay in milliseconds between snapshot retry attempts."
+      },
+      "snapshotOnMotion": {
+        "type": "boolean",
+        "default": true,
+        "description": "Capture a snapshot whenever motion is detected."
+      },
+      "snapshotOnDoorbell": {
+        "type": "boolean",
+        "default": true,
+        "description": "Capture a snapshot when the doorbell is pressed."
+      },
+      "enableMotionSensor": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable the motion sensor accessory."
+      },
+      "enableDoorbell": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable the doorbell accessory."
+      },
+      "enableSnapshotTrigger": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable a switch to manually trigger snapshot capture."
+      }
+    },
+    "required": [
+      "refreshToken"
+    ]
+  }
+}
