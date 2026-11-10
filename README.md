@@ -5,7 +5,7 @@
 
 # Homebridge Ring Snapshot Plugin
 
-A lightweight Homebridge plugin for exposing Ring camera snapshots, motion detection, doorbell events, and a manual snapshot trigger.
+A lightweight Homebridge plugin for exposing Ring camera snapshots, motion detection, doorbell events, and a manual snapshot trigger. Ideal for low-powered devices such as the Raspberry Pi Zero and slower internet connections.
 
 ## Installation
 
