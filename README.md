@@ -1,3 +1,8 @@
+<div align="center">
+  <p>☕ <strong>Support the project:</strong> <a href="https://buymeacoffee.com/bmccruz">Buy Me a Coffee</a></p>
+</div>
+
+
 # Homebridge Ring Snapshot Plugin
 
 A lightweight Homebridge plugin for exposing Ring camera snapshots, motion detection, doorbell events, and a manual snapshot trigger.
