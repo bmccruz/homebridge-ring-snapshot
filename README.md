@@ -1,7 +1,7 @@
 <div align="center">
+  <img src="banner.jpg" alt="Support Bruno on Buy Me a Coffee" width="100%">
   <p>☕ <strong>Support the project:</strong> <a href="https://buymeacoffee.com/bmccruz">Buy Me a Coffee</a></p>
 </div>
-
 
 # Homebridge Ring Snapshot Plugin
 
