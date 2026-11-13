@@ -169,7 +169,6 @@ class CameraAccessory {
 
     callback(null, response);
   }
-
   async handleStreamRequest(request) {
     const sessionId = request.sessionID;
 
@@ -219,6 +218,11 @@ class CameraAccessory {
 
         const ffmpegBinary = pathToFfmpeg || 'ffmpeg';
         const ffmpegProcess = spawn(ffmpegBinary, ffmpegArgs, { env: process.env });
+
+        ffmpegProcess.on('error', (error) => {
+          this.log.error(`FFmpeg failed to start (${ffmpegBinary}): ${error.message}`);
+          this.ongoingSessions.delete(sessionId);
+        });
 
         ffmpegProcess.stdin.on('error', () => {});
         ffmpegProcess.stdin.write(imageBuffer);
