@@ -69,10 +69,11 @@ class CameraAccessory {
       streamingOptions: {
         supportedCryptoSuites: [this.hap.SRTPCryptoSuites.AES_CM_128_HMAC_SHA1_80],
         video: {
-          resolutions: [,
- ,
- ,
- ,
+          resolutions: [
+            new Array(1920, 1080, 30),
+            new Array(1280, 720, 30),
+            new Array(640, 480, 30),
+            new Array(320, 240, 15),
           ],
           codec: {
             profiles: [this.hap.H264Profile.MAIN],
