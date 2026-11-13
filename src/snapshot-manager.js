@@ -27,6 +27,14 @@ class SnapshotManager {
     return this.snapshotDirectory;
   }
 
+  getLatestSnapshot() {
+    this.ensureDirectory();
+    if (fs.existsSync(this.latestFilePath)) {
+      return fs.readFileSync(this.latestFilePath);
+    }
+    return null;
+  }
+
   formatTimestamp(date = new Date()) {
     const pad = (value) => String(value).padStart(2, '0');
     return [

@@ -4,7 +4,6 @@ const SnapshotManager = require('./snapshot-manager');
 const CleanupService = require('./cleanup-service');
 const CameraAccessory = require('./camera-accessory');
 const MotionAccessory = require('./motion-accessory');
-const DoorbellAccessory = require('./doorbell-accessory');
 const SnapshotTriggerAccessory = require('./snapshot-trigger');
 
 class RingSnapshotPlatform {
@@ -19,7 +18,6 @@ class RingSnapshotPlatform {
     this.cleanupService = null;
     this.cameraAccessory = null;
     this.motionAccessory = null;
-    this.doorbellAccessory = null;
     this.snapshotTriggerAccessory = null;
 
     if (this.api && typeof this.api.on === 'function') {
@@ -74,8 +72,8 @@ class RingSnapshotPlatform {
     });
 
     this.ringClient.on('doorbell', () => {
-      if (this.doorbellAccessory) {
-        this.doorbellAccessory.notifyPress();
+      if (this.cameraAccessory && typeof this.cameraAccessory.notifyPress === 'function') {
+        this.cameraAccessory.notifyPress();
       }
 
       if (this.config.snapshotOnDoorbell) {
@@ -104,14 +102,18 @@ class RingSnapshotPlatform {
       accessories.push(this.motionAccessory.accessory);
     }
 
-    if (this.config.enableDoorbell) {
-      this.doorbellAccessory = new DoorbellAccessory(this);
-      accessories.push(this.doorbellAccessory.accessory);
-    }
-
     if (this.config.enableSnapshotTrigger) {
       this.snapshotTriggerAccessory = new SnapshotTriggerAccessory(this);
       accessories.push(this.snapshotTriggerAccessory.accessory);
+    }
+
+    const activeUUIDs = accessories.map((acc) => acc.UUID);
+    const toUnregister = this.cachedAccessories.filter(
+      (cached) => !activeUUIDs.includes(cached.UUID)
+    );
+
+    if (toUnregister.length > 0 && this.api && typeof this.api.unregisterPlatformAccessories === 'function') {
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, toUnregister);
     }
 
     const toRegister = accessories.filter(

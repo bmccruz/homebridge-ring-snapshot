@@ -1,6 +1,6 @@
 {
   "name": "homebridge-ring-snapshot",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Homebridge plugin that exposes Ring camera snapshots, motion and doorbell events using the Ring API.",
   "main": "index.js",
   "engines": {
@@ -25,6 +25,7 @@
   "author": "Bruno",
   "license": "MIT",
   "dependencies": {
+    "ffmpeg-for-homebridge": "^2.2.2",
     "ring-client-api": "^9.20.1"
   },
   "peerDependencies": {
