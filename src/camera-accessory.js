@@ -1,6 +1,12 @@
 const fs = require('fs');
 const { spawn } = require('child_process');
-const pathToFfmpeg = require('ffmpeg-for-homebridge');
+
+let pathToFfmpeg = null;
+try {
+  pathToFfmpeg = require('ffmpeg-for-homebridge');
+} catch (error) {
+  pathToFfmpeg = null;
+}
 
 class CameraAccessory {
   constructor(platform) {
@@ -49,7 +55,7 @@ class CameraAccessory {
     }
 
     const cameraController = new this.hap.CameraController({
-      cameraStreamCount: 2,
+      cameraStreamCount: 1,
       delegate: {
         handleSnapshotRequest: (request, callback) => {
           this.getLatestSnapshotBuffer()
@@ -70,10 +76,9 @@ class CameraAccessory {
         supportedCryptoSuites: [this.hap.SRTPCryptoSuites.AES_CM_128_HMAC_SHA1_80],
         video: {
           resolutions: [
-            new Array(1920, 1080, 30),
-            new Array(1280, 720, 30),
-            new Array(640, 480, 30),
-            new Array(320, 240, 15),
+            new Array(1280, 720, 10),
+            new Array(640, 480, 10),
+            new Array(320, 240, 10),
           ],
           codec: {
             profiles: [this.hap.H264Profile.MAIN],
@@ -151,10 +156,10 @@ class CameraAccessory {
       try {
         const imageBuffer = await this.getLatestSnapshotBuffer();
         const video = request.video;
-        const width = video.width || 1280;
-        const height = video.height || 720;
-        const fps = video.fps || 15;
-        const maxBitrate = video.max_bit_rate || 300;
+        const width = video.width || 640;
+        const height = video.height || 480;
+        const fps = Math.min(video.fps || 10, 10);
+        const maxBitrate = Math.min(video.max_bit_rate || 200, 200);
         const payloadType = video.pt || 99;
         const mtu = video.mtu || 1378;
         const srtpParams = sessionInfo.videoSRTP.toString('base64');
@@ -169,6 +174,7 @@ class CameraAccessory {
           '-sn',
           '-dn',
           '-vcodec', 'libx264',
+          '-preset', 'ultrafast',
           '-pix_fmt', 'yuv420p',
           '-r', `${fps}`,
           '-f', 'rawvideo',
