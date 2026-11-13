@@ -92,7 +92,8 @@ Files are stored in `snapshotDirectory` using this layout:
 - Homebridge 1.5.0+
 - Node.js 16+
 - Raspberry Pi Zero
-- `ring-client-api` 14.x
+- ring-client-api 9.x+
+- ffmpeg-for-homebridge (bundled automatically)
 
 ## Troubleshooting
 
