@@ -4,27 +4,25 @@ class CameraAccessory {
   constructor(platform) {
     this.platform = platform;
     this.log = platform.log;
+    const hap = platform.api.hap;
     const name = platform.config.cameraName || 'Ring Camera';
-    const uuid = platform.api.hap.uuid.generate(`ring-snapshot:${name}:camera`);
+    const uuid = hap.uuid.generate(`ring-snapshot:${name}:camera`);
 
     this.accessory = new platform.api.platformAccessory(name, uuid);
     this.accessory.context = { type: 'camera', name };
 
-    const info = this.accessory.getService(platform.api.hap.Service.AccessoryInformation)
-      || this.accessory.addService(platform.api.hap.Service.AccessoryInformation);
+    const info = this.accessory.getService(hap.Service.AccessoryInformation)
+      || this.accessory.addService(hap.Service.AccessoryInformation);
 
     info
-      .setCharacteristic(platform.api.hap.Characteristic.Manufacturer, 'Ring')
-      .setCharacteristic(platform.api.hap.Characteristic.Model, 'Ring Snapshot Camera')
-      .setCharacteristic(platform.api.hap.Characteristic.SerialNumber, name);
+      .setCharacteristic(hap.Characteristic.Manufacturer, 'Ring')
+      .setCharacteristic(hap.Characteristic.Model, 'Ring Snapshot Camera')
+      .setCharacteristic(hap.Characteristic.SerialNumber, name);
 
-    this.accessory.addService(platform.api.hap.Service.Camera, name);
-
-    const cameraController = new platform.api.hap.CameraController({
-      name,
-      cameraStreamCount: 0,
+    const cameraController = new hap.CameraController({
+      cameraStreamCount: 1,
       delegate: {
-        handleSnapshotRequest: (streamId, request, callback) => {
+        handleSnapshotRequest: (request, callback) => {
           this.platform.triggerSnapshot('snapshot')
             .then((result) => {
               if (result && result.buffer) {
@@ -44,9 +42,24 @@ class CameraAccessory {
               callback(error);
             });
         },
-        handleCloseConnection: () => {},
-        handleStreamingRequest: (streamId, request, callback) => {
+        prepareStream: (request, callback) => {
           callback(new Error('Streaming is not supported by this plugin.'));
+        },
+        handleStreamRequest: () => {},
+      },
+      streamingOptions: {
+        supportedCryptoSuites: [hap.SRTPCryptoSuites.AES_CM_128_HMAC_SHA1_80],
+        video: {
+          resolutions: [
+            new Array(1920, 1080, 30),
+            new Array(1280, 720, 30),
+            new Array(640, 480, 30),
+            new Array(320, 240, 15),
+          ],
+          codec: {
+            profiles: [hap.H264Profile.MAIN],
+            levels: [hap.H264Level.LEVEL3_1],
+          },
         },
       },
     });

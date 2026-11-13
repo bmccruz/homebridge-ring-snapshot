@@ -1,17 +1,41 @@
+const fs = require('fs');
 const { EventEmitter } = require('events');
 const { RingApi } = require('ring-client-api');
 
 class RingClientManager extends EventEmitter {
-  constructor(log, config = {}) {
+  constructor(log, config = {}, configPath = null) {
     super();
     this.log = log;
     this.config = config;
+    this.configPath = configPath;
     this.refreshToken = config.refreshToken || '';
     this.cameraName = config.cameraName || 'Ring Camera';
     this.snapshotRetries = Number(config.snapshotRetries || 3);
     this.snapshotRetryDelayMs = Number(config.snapshotRetryDelayMs || 2000);
     this.api = null;
     this.camera = null;
+  }
+
+  saveUpdatedToken(newRefreshToken) {
+    if (!this.configPath || !fs.existsSync(this.configPath)) {
+      this.log.warn('Refresh token updated, but configPath is not set to persist it.');
+      return;
+    }
+
+    try {
+      const currentConfig = JSON.parse(fs.readFileSync(this.configPath, 'utf8'));
+      const platformBlock = (currentConfig.platforms || []).find(
+        (p) => p.platform === 'RingSnapshot'
+      );
+
+      if (platformBlock) {
+        platformBlock.refreshToken = newRefreshToken;
+        fs.writeFileSync(this.configPath, JSON.stringify(currentConfig, null, 2), 'utf8');
+        this.log.info('Updated Ring refreshToken saved to config.json.');
+      }
+    } catch (error) {
+      this.log.error('Failed to save updated refreshToken to config.json:', error);
+    }
   }
 
   async connect() {
@@ -25,6 +49,14 @@ class RingClientManager extends EventEmitter {
 
     this.log.info('Connecting to Ring API...');
     this.api = new RingApi({ refreshToken: this.refreshToken });
+
+    this.api.onRefreshTokenUpdated.subscribe(({ newRefreshToken, oldRefreshToken }) => {
+      if (!oldRefreshToken) {
+        return;
+      }
+      this.log.debug('Ring refreshToken rotated, persisting new token...');
+      this.saveUpdatedToken(newRefreshToken);
+    });
 
     const cameras = await this.api.getCameras();
     if (!Array.isArray(cameras) || cameras.length === 0) {
@@ -43,10 +75,12 @@ class RingClientManager extends EventEmitter {
     this.log.info(`Connected to Ring camera: ${this.camera.name}`);
 
     this.camera.onMotionDetected.subscribe((motionDetected) => {
+      this.log.info(`Ring motion event received: ${motionDetected}`);
       this.emit('motion-changed', Boolean(motionDetected));
     });
 
     this.camera.onDoorbellPressed.subscribe((dingEvent) => {
+      this.log.info('Ring doorbell pressed event received!');
       this.emit('doorbell', dingEvent || { type: 'doorbell' });
     });
 

@@ -1,9 +1,9 @@
 const DEFAULT_CONFIG = {
   name: 'Ring Snapshot',
   refreshToken: '',
-  cameraName: 'Portão',
+  cameraName: 'Doorbell Camera',
   snapshotDirectory: '/var/lib/homebridge/ring-snapshots',
-  retentionDays: 30,
+  retentionDays: 10,
   cooldownSeconds: 60,
   motionResetSeconds: 10,
   snapshotOnMotion: true,

@@ -1,8 +1,9 @@
 class SnapshotTriggerAccessory {
   constructor(platform) {
     this.platform = platform;
-    const name = `${platform.config.cameraName || 'Ring Camera'} Snapshot`;
-    const uuid = platform.api.hap.uuid.generate(`ring-snapshot:${platform.config.cameraName}:snapshot-trigger`);
+    const cameraName = platform.config.cameraName || 'Ring Camera';
+    const name = `${cameraName} Snapshot`;
+    const uuid = platform.api.hap.uuid.generate(`ring-snapshot:${cameraName}:snapshot-trigger`);
 
     this.accessory = new platform.api.platformAccessory(name, uuid);
     this.accessory.context = { type: 'snapshot-trigger', name };
@@ -13,28 +14,29 @@ class SnapshotTriggerAccessory {
     info
       .setCharacteristic(platform.api.hap.Characteristic.Manufacturer, 'Ring')
       .setCharacteristic(platform.api.hap.Characteristic.Model, 'Snapshot Trigger')
-      .setCharacteristic(platform.api.hap.Characteristic.SerialNumber, `${platform.config.cameraName} Snapshot Trigger`);
+      .setCharacteristic(platform.api.hap.Characteristic.SerialNumber, `${cameraName} Snapshot Trigger`);
 
     this.service = this.accessory.addService(platform.api.hap.Service.Switch, name);
     this.characteristic = this.service.getCharacteristic(platform.api.hap.Characteristic.On);
-    this.characteristic.onSet = (value, callback) => {
+
+    this.characteristic.onSet(async (value) => {
       if (!value) {
-        callback();
         return;
       }
 
-      this.platform.triggerSnapshot('manual')
-        .then(() => {
-          setTimeout(() => {
-            this.characteristic.updateValue(false);
-          }, 1000);
-          callback();
-        })
-        .catch((error) => {
-          this.platform.log.error('Manual snapshot trigger failed:', error);
-          callback(error);
-        });
-    };
+      this.platform.log.info('Manual snapshot triggered from HomeKit/UI.');
+
+      try {
+        await this.platform.triggerSnapshot('manual');
+      } catch (error) {
+        this.platform.log.error('Manual snapshot trigger failed:', error);
+        throw error;
+      } finally {
+        setTimeout(() => {
+          this.characteristic.updateValue(false);
+        }, 1000);
+      }
+    });
   }
 }
 

@@ -13,6 +13,7 @@ class RingSnapshotPlatform {
     this.api = api;
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.initialized = false;
+    this.cachedAccessories = [];
     this.ringClient = null;
     this.snapshotManager = null;
     this.cleanupService = null;
@@ -30,12 +31,27 @@ class RingSnapshotPlatform {
     }
   }
 
+  configureAccessory(accessory) {
+    this.log.debug('Loading accessory from cache:', accessory.displayName);
+    this.cachedAccessories.push(accessory);
+  }
+
   async initialize() {
     if (this.initialized) {
       return;
     }
 
     this.log.info('Initializing RingSnapshot platform...');
+
+    setTimeout(() => {
+      this.log.info('[SIMULATION] Movement detected...');
+      this.ringClient.emit('motion-changed', true);
+    }, 10000);
+
+    setTimeout(() => {
+      this.log.info('[SIMULATION] Doorbell pressed...');
+      this.ringClient.emit('doorbell');
+    }, 80000);
 
     this.snapshotManager = new SnapshotManager(
       this.log,
@@ -44,7 +60,11 @@ class RingSnapshotPlatform {
       Number(this.config.cooldownSeconds || DEFAULT_CONFIG.cooldownSeconds)
     );
 
-    this.ringClient = new RingClientManager(this.log, this.config);
+    const configPath = this.api && this.api.user && typeof this.api.user.configPath === 'function'
+      ? this.api.user.configPath()
+      : null;
+
+    this.ringClient = new RingClientManager(this.log, this.config, configPath);
     await this.ringClient.connect();
 
     this.snapshotManager.setSnapshotProvider(async () => this.ringClient.captureSnapshot());
@@ -104,8 +124,12 @@ class RingSnapshotPlatform {
       accessories.push(this.snapshotTriggerAccessory.accessory);
     }
 
-    if (this.api && typeof this.api.registerPlatformAccessories === 'function') {
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessories);
+    const toRegister = accessories.filter(
+      (acc) => !this.cachedAccessories.some((cached) => cached.UUID === acc.UUID)
+    );
+
+    if (toRegister.length > 0 && this.api && typeof this.api.registerPlatformAccessories === 'function') {
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, toRegister);
     }
   }
 
@@ -114,7 +138,8 @@ class RingSnapshotPlatform {
       throw new Error('Snapshot manager is not initialized.');
     }
 
-    return this.snapshotManager.captureSnapshot(label, { force: false });
+    const force = label === 'manual';
+    return this.snapshotManager.captureSnapshot(label, { force });
   }
 }
 

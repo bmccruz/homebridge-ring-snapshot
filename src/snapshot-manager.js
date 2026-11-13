@@ -11,6 +11,7 @@ class SnapshotManager {
     this.lastSnapshotAt = 0;
     this.latestFilePath = path.join(this.snapshotDirectory, 'latest.jpg');
     this.snapshotProvider = null;
+    this.inFlightCapture = null;
   }
 
   setSnapshotProvider(snapshotProvider) {
@@ -44,6 +45,19 @@ class SnapshotManager {
   }
 
   async captureSnapshot(label = 'manual', options = {}) {
+    if (this.inFlightCapture) {
+      this.log.debug(`Snapshot capture already in progress, joining existing request (${label})...`);
+      return this.inFlightCapture;
+    }
+
+    this.inFlightCapture = this._executeCapture(label, options).finally(() => {
+      this.inFlightCapture = null;
+    });
+
+    return this.inFlightCapture;
+  }
+
+  async _executeCapture(label = 'manual', options = {}) {
     const { ignoreCooldown = false, force = false } = options;
     this.ensureDirectory();
 
@@ -52,9 +66,13 @@ class SnapshotManager {
     }
 
     const now = Date.now();
-    const shouldSkipCooldown = !ignoreCooldown && !force && this.lastSnapshotAt > 0 && (now - this.lastSnapshotAt) < this.cooldownMs;
+    const elapsedMs = now - this.lastSnapshotAt;
+    const shouldSkipCooldown = !ignoreCooldown && !force && this.lastSnapshotAt > 0 && elapsedMs < this.cooldownMs;
 
     if (shouldSkipCooldown) {
+      const remainingSec = Math.ceil((this.cooldownMs - elapsedMs) / 1000);
+      this.log.debug(`Skipping ${label} snapshot (cooldown active: ${remainingSec}s remaining).`);
+
       if (fs.existsSync(this.latestFilePath)) {
         const buffer = fs.readFileSync(this.latestFilePath);
         return { filePath: this.latestFilePath, buffer, skipped: true };

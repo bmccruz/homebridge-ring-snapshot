@@ -24,6 +24,10 @@ class CleanupService {
         this.log.error('Scheduled snapshot cleanup failed:', error);
       });
     }, 24 * 60 * 60 * 1000);
+
+    if (typeof this.intervalId.unref === 'function') {
+      this.intervalId.unref();
+    }
   }
 
   stop() {
