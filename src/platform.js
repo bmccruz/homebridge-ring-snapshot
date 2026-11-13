@@ -43,16 +43,6 @@ class RingSnapshotPlatform {
 
     this.log.info('Initializing RingSnapshot platform...');
 
-    setTimeout(() => {
-      this.log.info('[SIMULATION] Movement detected...');
-      this.ringClient.emit('motion-changed', true);
-    }, 10000);
-
-    setTimeout(() => {
-      this.log.info('[SIMULATION] Doorbell pressed...');
-      this.ringClient.emit('doorbell');
-    }, 80000);
-
     this.snapshotManager = new SnapshotManager(
       this.log,
       this.config.snapshotDirectory,
