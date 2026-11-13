@@ -136,25 +136,38 @@ class CameraAccessory {
     const sessionId = request.sessionID;
     const targetAddress = request.targetAddress;
     const video = request.video;
+    const audio = request.audio;
 
-    const ssrc = this.hap.CameraController.generateSynchronisationSource();
+    const videoSSRC = this.hap.CameraController.generateSynchronisationSource();
+    const audioSSRC = this.hap.CameraController.generateSynchronisationSource();
 
     this.pendingSessions.set(sessionId, {
       address: targetAddress,
       videoPort: video.port,
       videoCryptoSuite: video.srtpCryptoSuite,
       videoSRTP: Buffer.concat([video.srtp_key, video.srtp_salt]),
-      videoSSRC: ssrc,
+      videoSSRC,
     });
 
-    callback(null, {
+    const response = {
       video: {
         port: video.port,
-        ssrc: ssrc,
+        ssrc: videoSSRC,
         srtp_key: video.srtp_key,
         srtp_salt: video.srtp_salt,
       },
-    });
+    };
+
+    if (audio) {
+      response.audio = {
+        port: audio.port,
+        ssrc: audioSSRC,
+        srtp_key: audio.srtp_key,
+        srtp_salt: audio.srtp_salt,
+      };
+    }
+
+    callback(null, response);
   }
 
   async handleStreamRequest(request) {

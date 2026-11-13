@@ -5,7 +5,13 @@ class SnapshotTriggerAccessory {
     const name = `${cameraName} Snapshot`;
     const uuid = platform.api.hap.uuid.generate(`ring-snapshot:${cameraName}:snapshot-trigger`);
 
-    this.accessory = new platform.api.platformAccessory(name, uuid);
+    const existingAccessory = platform.cachedAccessories.find((acc) => acc.UUID === uuid);
+    if (existingAccessory) {
+      this.accessory = existingAccessory;
+    } else {
+      this.accessory = new platform.api.platformAccessory(name, uuid);
+    }
+
     this.accessory.context = { type: 'snapshot-trigger', name };
 
     const info = this.accessory.getService(platform.api.hap.Service.AccessoryInformation)
@@ -16,7 +22,8 @@ class SnapshotTriggerAccessory {
       .setCharacteristic(platform.api.hap.Characteristic.Model, 'Snapshot Trigger')
       .setCharacteristic(platform.api.hap.Characteristic.SerialNumber, `${cameraName} Snapshot Trigger`);
 
-    this.service = this.accessory.addService(platform.api.hap.Service.Switch, name);
+    this.service = this.accessory.getService(platform.api.hap.Service.Switch)
+      || this.accessory.addService(platform.api.hap.Service.Switch, name);
     this.characteristic = this.service.getCharacteristic(platform.api.hap.Characteristic.On);
 
     this.characteristic.onSet(async (value) => {

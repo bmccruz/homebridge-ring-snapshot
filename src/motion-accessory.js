@@ -5,10 +5,17 @@ class MotionAccessory {
     this.resetSeconds = Number(platform.config.motionResetSeconds || 10);
 
     const hap = platform.api.hap;
-    const name = `${platform.config.cameraName || 'Ring Camera'} Motion`;
-    const uuid = hap.uuid.generate(`ring-snapshot:${platform.config.cameraName}:motion`);
+    const cameraName = platform.config.cameraName || 'Ring Camera';
+    const name = `${cameraName} Motion`;
+    const uuid = hap.uuid.generate(`ring-snapshot:${cameraName}:motion`);
 
-    this.accessory = new platform.api.platformAccessory(name, uuid);
+    const existingAccessory = platform.cachedAccessories.find((acc) => acc.UUID === uuid);
+    if (existingAccessory) {
+      this.accessory = existingAccessory;
+    } else {
+      this.accessory = new platform.api.platformAccessory(name, uuid);
+    }
+
     this.accessory.context = { type: 'motion', name };
 
     const info = this.accessory.getService(hap.Service.AccessoryInformation)
@@ -17,9 +24,10 @@ class MotionAccessory {
     info
       .setCharacteristic(hap.Characteristic.Manufacturer, 'Ring')
       .setCharacteristic(hap.Characteristic.Model, 'Motion Sensor')
-      .setCharacteristic(hap.Characteristic.SerialNumber, `${platform.config.cameraName} Motion`);
+      .setCharacteristic(hap.Characteristic.SerialNumber, `${cameraName} Motion`);
 
-    this.service = this.accessory.addService(hap.Service.MotionSensor, name);
+    this.service = this.accessory.getService(hap.Service.MotionSensor)
+      || this.accessory.addService(hap.Service.MotionSensor, name);
     this.characteristic = this.service.getCharacteristic(hap.Characteristic.MotionDetected);
     this.characteristic.updateValue(false);
   }
