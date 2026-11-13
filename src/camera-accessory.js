@@ -41,7 +41,7 @@ class CameraAccessory {
     info
       .setCharacteristic(this.hap.Characteristic.Manufacturer, 'Ring')
       .setCharacteristic(this.hap.Characteristic.Model, 'Ring Snapshot Camera')
-      .setCharacteristic(this.hap.Characteristic.SerialNumber, name);
+      .setCharacteristic(this.hap.Characteristic.SerialNumber, `ring-snap-${name}`);
 
     if (isDoorbell) {
       this.doorbellService = this.accessory.getService(this.hap.Service.Doorbell)
@@ -58,14 +58,19 @@ class CameraAccessory {
       cameraStreamCount: 1,
       delegate: {
         handleSnapshotRequest: (request, callback) => {
+          this.log.info(`HomeKit requested snapshot (${request.width}x${request.height})`);
           this.getLatestSnapshotBuffer()
-            .then((buffer) => callback(null, buffer))
+            .then((buffer) => {
+              this.log.info(`Sending snapshot buffer to HomeKit (${buffer.length} bytes)`);
+              callback(null, buffer);
+            })
             .catch((error) => {
               this.log.error('Snapshot request failed:', error);
               callback(error);
             });
         },
         prepareStream: (request, callback) => {
+          this.log.info('HomeKit requested stream preparation');
           this.prepareStream(request, callback);
         },
         handleStreamRequest: (request) => {
@@ -84,6 +89,14 @@ class CameraAccessory {
             profiles: [this.hap.H264Profile.MAIN],
             levels: [this.hap.H264Level.LEVEL3_1],
           },
+        },
+        audio: {
+          codecs: [
+            {
+              type: this.hap.AudioStreamingCodecType.AAC_ELD,
+              samplerate: this.hap.AudioStreamingSamplerate.KHZ_16,
+            },
+          ],
         },
       },
     });
