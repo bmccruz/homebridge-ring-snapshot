@@ -58,10 +58,10 @@ class CameraAccessory {
       cameraStreamCount: 1,
       delegate: {
         handleSnapshotRequest: (request, callback) => {
-          this.log.info(`HomeKit requested snapshot (${request.width}x${request.height})`);
+          this.log.debug(`HomeKit requested snapshot (${request.width}x${request.height})`);
           this.getLatestSnapshotBuffer()
             .then((buffer) => {
-              this.log.info(`Sending snapshot buffer to HomeKit (${buffer.length} bytes)`);
+              this.log.debug(`Sending snapshot buffer to HomeKit (${buffer.length} bytes)`);
               callback(null, buffer);
             })
             .catch((error) => {
@@ -70,7 +70,7 @@ class CameraAccessory {
             });
         },
         prepareStream: (request, callback) => {
-          this.log.info('HomeKit requested stream preparation');
+          this.log.debug('HomeKit requested stream preparation');
           this.prepareStream(request, callback);
         },
         handleStreamRequest: (request) => {
